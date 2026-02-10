@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Promise 🤞</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff6b81;
+            --soft-pink: #ffe4e1;
+            --light-blue: #e0f7fa;
+            --glass: rgba(255, 255, 255, 0.4);
+            --border: rgba(255, 255, 255, 0.6);
+            --gold: #ffd700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #222;
+        }
+
+        /* --- SCREEN MANAGEMENT --- */
+        .screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .screen.active { opacity: 1; pointer-events: auto; z-index: 10; }
+
+        /* --- BACKGROUNDS --- */
+        .bg-gradient { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .bg-pink { background-color: var(--soft-pink); }
+        .bg-blue { background-color: var(--light-blue); }
+
+        /* --- COMPONENTS --- */
+        .glass-box {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            width: 90%; max-width: 380px;
+            position: relative;
+            z-index: 5;
+        }
+
+        h2 { color: #333; margin-bottom: 15px; font-weight: 700; }
+        p { color: #444; font-size: 1rem; margin-bottom: 20px; }
+
+        /* --- BUTTONS & INPUTS --- */
+        .pass-input {
+            width: 100%; padding: 12px; margin: 15px 0;
+            border-radius: 50px; border: none;
+            text-align: center; font-size: 1rem;
+            outline: none; background: rgba(255,255,255,0.8);
+        }
+
+        .glow-btn {
+            padding: 12px 35px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            background: white;
+            color: var(--primary);
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 107, 129, 0.3);
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        .glow-btn:hover { transform: scale(1.05); }
+
+        /* --- GAME ELEMENTS (Fixed) --- */
+        .game-area {
+            position: relative; width: 100%; height: 60vh;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            overflow: hidden; margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .falling-item {
+            position: absolute; font-size: 2.5rem; /* Bigger for easier clicking */
+            animation: fallDown linear forwards;
+            cursor: pointer;
+            user-select: none;
+        }
+        .score-board {
+            font-size: 1.5rem; font-weight: bold; color: #fff;
+            margin-bottom: 10px;
+        }
+
+        /* --- PROMISE LIST --- */
+        .promise-list { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+        .promise-item {
+            padding: 15px; background: white; border-radius: 15px;
+            color: var(--primary); font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            animation: glowPulse 2s infinite alternate;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .promise-item:active { transform: scale(0.95); background: var(--primary); color: white; }
+
+        /* --- VIDEO WRAPPER --- */
+        .video-box {
+            width: 90%; max-width: 350px;
+            border-radius: 20px; overflow: hidden;
+            border: 4px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            background: black;
+            position: relative; z-index: 10;
+        }
+        video { width: 100%; display: block; }
+
+        /* --- ENVELOPE ANIMATION --- */
+        .envelope-wrapper {
+            position: relative; width: 280px; height: 180px;
+            background: #ff6b81;
+            border-radius: 0 0 10px 10px;
+            cursor: pointer; margin: 30px auto;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .lid {
+            position: absolute; top: 0; left: 0;
+            width: 0; height: 0;
+            border-left: 140px solid transparent;
+            border-right: 140px solid transparent;
+            border-top: 100px solid #ff85a2;
+            transform-origin: top; transition: 0.5s; z-index: 3;
+        }
+        .envelope-wrapper.open .lid { transform: rotateX(180deg); z-index: 1; }
+        .letter {
+            position: absolute; top: 10px; left: 10px;
+            width: 260px; height: 160px;
+            background: white; padding: 15px;
+            border-radius: 5px;
+            transition: 0.5s; z-index: 2;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1rem; overflow-y: auto;
+            color: #333; line-height: 1.4;
+        }
+        .envelope-wrapper.open .letter { transform: translateY(-80px); height: 250px; z-index: 4; }
+
+        /* --- POPUP REVEAL (Page 6) --- */
+        .popup-reveal {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.1rem;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .popup-reveal.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* --- FALLING EMOJIS (LAST PAGE) --- */
+        .bg-emojis {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1;
+        }
+        .tiny-emoji {
+            position: absolute; font-size: 1rem;
+            animation: fallBg linear infinite;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fallDown { to { transform: translateY(65vh) rotate(360deg); } }
+        @keyframes fallBg { to { transform: translateY(110vh); } }
+        @keyframes glowPulse { from { box-shadow: 0 0 5px var(--primary); } to { box-shadow: 0 0 15px var(--primary); } }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        .shake { animation: shake 0.3s ease-in-out; border: 2px solid red !important; }
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 1s forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="s1" class="screen active bg-gradient">
+        <div class="glass-box">
+            <div style="font-size:3rem;">🔒</div>
+            <h2>Promise Lock</h2>
+            <p>Only for the one I promised forever to.</p>
+            <input type="password" id="passInput" class="pass-input" placeholder="Secret Code...">
+            <button class="glow-btn" onclick="checkPass()">Unlock</button>
+        </div>
+    </div>
+
+    <div id="s2" class="screen bg-gradient">
+        <div class="glass-box" style="max-width: 400px;">
+            <h2>Catch My Love! 💖</h2>
+            <p>Catch the Red Hearts ❤️ to fill the meter!</p>
+            <div class="score-board">❤️ <span id="score">0</span>/10</div>
+            <div class="game-area" id="gameArea"></div>
+            <button id="gameBtn" class="glow-btn hidden" onclick="nextScreen('s3')">Continue</button>
+        </div>
+    </div>
+
+    <div id="s3" class="screen bg-pink">
+        <div class="glass-box">
+            <h2>What promise will you make today?</h2>
+            <div class="promise-list">
+                <div class="promise-item" onclick="nextScreen('s4')">I will stay.</div>
+                <div class="promise-item" onclick="nextScreen('s4')">option1</div>
+                <div class="promise-item" onclick="nextScreen('s4')">option2</div>
+                <div class="promise-item" onclick="nextScreen('s4')">option3</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="s4" class="screen bg-gradient">
+        <div class="glass-box" style="margin-bottom: 20px;">
+            <p style="font-weight:bold; font-size:1.1rem;">My plan was not to fall in love 🫠 but then you came in my life 🫡🤭</p>
+        </div>
+        <div class="video-box">
+            <video id="vid1" playsinline>
+                <source src="video1.mp4" type="video/mp4">
+            </video>
+        </div>
+        <button id="btnVid1" class="glow-btn hidden" style="margin-top:20px;" onclick="nextScreen('s5')">Continue</button>
+    </div>
+
+    <div id="s5" class="screen bg-pink">
+        <div style="text-align:center; position:relative; z-index:10;">
+            <h2 style="color: #ff6b81;">My Promise To You</h2>
+            <div class="envelope-wrapper" onclick="openLetter()">
+                <div class="lid"></div>
+                <div class="letter">
+                    My Dearest Cutu,<br><br>
+                    On this Promise Day, I don't just promise you words, I promise you action. I promise to be your calm in the chaos. I promise to listen, to understand, and to grow with you.<br><br>
+                    I will become the best version of myself, just for you. Forever isn't enough time to love you, but I promise to start with today.<br><br>
+                    Yours always. ❤️
+                </div>
+            </div>
+            <p style="font-size:0.8rem; margin-top:50px;">Tap envelope to open</p>
+            <button id="btnLetter" class="glow-btn hidden" onclick="nextScreen('s6')">Continue</button>
+        </div>
+    </div>
+
+    <div id="s6" class="screen bg-gradient">
+        <div class="glass-box">
+            <h2 style="color:var(--primary);">Are you mixed? 🤔</h2>
+            
+            <button id="whyBtn" class="glow-btn" onclick="revealPickup()">why ?</button>
+            
+            <div id="pickupAnswer" class="popup-reveal hidden">
+                Because your half fine and half mine 😘
+            </div>
+
+            <button id="finalContinue" class="glow-btn hidden" style="margin-top: 20px;" onclick="nextScreen('s7')">One last continue</button>
+        </div>
+    </div>
+
+    <div id="s7" class="screen bg-blue">
+        <div class="bg-emojis" id="emojiRain"></div>
+        <div class="video-box">
+            <video id="vid2" playsinline>
+                <source src="video2.mp4" type="video/mp4">
+            </video>
+        </div>
+        <h2 style="margin-top:20px; color:#555; z-index:10;">Happy Promise Day 🧿💛</h2>
+    </div>
+
+    <script>
+        // --- SECURITY ---
+        function checkPass() {
+            const input = document.getElementById('passInput').value;
+            // Base64 for "ipromiseyou"
+            if (btoa(input) === "aXByb21pc2V5b3U=") {
+                nextScreen('s2');
+                startGame();
+            } else {
+                const inp = document.getElementById('passInput');
+                inp.classList.add('shake');
+                setTimeout(()=>inp.classList.remove('shake'), 300);
+            }
+        }
+
+        // --- NAVIGATION ---
+        function nextScreen(id) {
+            document.querySelector('.screen.active').classList.remove('active');
+            const next = document.getElementById(id);
+            next.classList.add('active');
+
+            if(id === 's4') playVid1();
+            if(id === 's7') playVid2();
+        }
+
+        // --- GAME LOGIC (FIXED: Spawns ❤️) ---
+        let score = 0;
+        function startGame() {
+            const area = document.getElementById('gameArea');
+            const interval = setInterval(() => {
+                if(score >= 10) {
+                    clearInterval(interval);
+                    document.getElementById('gameBtn').classList.remove('hidden');
+                    document.getElementById('gameBtn').classList.add('fade-in');
+                    area.innerHTML = "<h3 style='color:white; margin-top:50px;'>You caught my heart! 💖</h3>";
+                    return;
+                }
+                createHeart();
+            }, 600);
+        }
+
+        function createHeart() {
+            const h = document.createElement('div');
+            // FIX: Only spawning Red Heart as requested
+            h.innerHTML = '❤️'; 
+            h.classList.add('falling-item');
+            h.style.left = Math.random() * 80 + 10 + '%';
+            h.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            h.onclick = function() {
+                score++;
+                document.getElementById('score').innerText = score;
+                h.remove(); // Disappear on click
+            };
+            document.getElementById('gameArea').appendChild(h);
+            setTimeout(() => h.remove(), 4000);
+        }
+
+        // --- VIDEO 1 LOGIC ---
+        function playVid1() {
+            const vid = document.getElementById('vid1');
+            vid.play();
+            setTimeout(() => {
+                document.getElementById('btnVid1').classList.remove('hidden');
+                document.getElementById('btnVid1').classList.add('fade-in');
+            }, 12000);
+        }
+
+        // --- LETTER LOGIC ---
+        function openLetter() {
+            document.querySelector('.envelope-wrapper').classList.toggle('open');
+            setTimeout(() => {
+                document.getElementById('btnLetter').classList.remove('hidden');
+                document.getElementById('btnLetter').classList.add('fade-in');
+            }, 1500);
+        }
+
+        // --- PICKUP LINE REVEAL ---
+        function revealPickup() {
+            document.getElementById('whyBtn').style.display = 'none'; // Hide button
+            const popup = document.getElementById('pickupAnswer');
+            popup.classList.remove('hidden');
+            // Trigger animation frame for CSS transition
+            setTimeout(() => popup.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                document.getElementById('finalContinue').classList.remove('hidden');
+                document.getElementById('finalContinue').classList.add('fade-in');
+            }, 1500);
+        }
+
+        // --- VIDEO 2 & EMOJI RAIN ---
+        function playVid2() {
+            const vid = document.getElementById('vid2');
+            vid.play();
+            startEmojiRain();
+        }
+
+        function startEmojiRain() {
+            const container = document.getElementById('emojiRain');
+            const emojis = ['💕','🧸','🎁','🍫','🫂','🧿','💛'];
+            
+            setInterval(() => {
+                const e = document.createElement('div');
+                e.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                e.classList.add('tiny-emoji');
+                e.style.left = Math.random() * 100 + 'vw';
+                e.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                e.style.opacity = Math.random();
+                container.appendChild(e);
+                setTimeout(() => e.remove(), 10000);
+            }, 200);
+        }
+    </script>
+</body>
+</html>
